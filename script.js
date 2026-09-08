@@ -85,25 +85,64 @@ async function getFilesFromGitHub() {
   );
 }
 
-async function readTakenDate(url, fallbackName) {
-  try {
-    // exifr reads EXIF from the image itself. DateTimeOriginal is preferred
-    // because it represents when a camera/phone took the picture.
-    const exif = await exifr.parse(url, {
-      pick: ["DateTimeOriginal", "CreateDate", "ModifyDate"]
-    });
+function commitsUrl(path, page) {
+  const params = new URLSearchParams({
+    path,
+    sha: CONFIG.branch,
+    per_page: "100"
+  });
+  if (page) params.set("page", String(page));
+  return `https://api.github.com/repos/${CONFIG.repository}/commits?${params.toString()}`;
+}
 
-    const date = exif?.DateTimeOriginal || exif?.CreateDate || exif?.ModifyDate;
-    if (date instanceof Date && !isNaN(date.getTime())) return date;
-    if (typeof date === "string") {
-      const parsed = new Date(date);
+function extractLastPageNumber(linkHeader) {
+  if (!linkHeader) return null;
+  const match = linkHeader.match(/[?&]page=(\d+)[^>]*>;\s*rel="last"/);
+  return match ? Number(match[1]) : null;
+}
+
+// Finds the date this exact file was uploaded to GitHub, by walking commit
+// history for its path and taking the oldest commit (the one that added it).
+async function getUploadDate(path) {
+  try {
+    const firstRes = await fetch(commitsUrl(path), {
+      headers: { Accept: "application/vnd.github+json" }
+    });
+    if (!firstRes.ok) return null;
+
+    let commits = await firstRes.json();
+    if (!Array.isArray(commits) || !commits.length) return null;
+
+    // If history for this file spans more than one page, jump to the last
+    // page so we land on the very first (oldest) commit that touched it.
+    const lastPage = extractLastPageNumber(firstRes.headers.get("Link"));
+    if (lastPage) {
+      const lastRes = await fetch(commitsUrl(path, lastPage), {
+        headers: { Accept: "application/vnd.github+json" }
+      });
+      if (lastRes.ok) {
+        const lastCommits = await lastRes.json();
+        if (Array.isArray(lastCommits) && lastCommits.length) {
+          commits = lastCommits;
+        }
+      }
+    }
+
+    const oldest = commits[commits.length - 1];
+    const dateStr = oldest?.commit?.author?.date || oldest?.commit?.committer?.date;
+    if (dateStr) {
+      const parsed = new Date(dateStr);
       if (!isNaN(parsed.getTime())) return parsed;
     }
   } catch (_) {
-    // Some images have no EXIF or block cross-origin metadata reads.
+    // Rate-limited or offline — fall through to the filename fallback below.
   }
 
-  // Last resort: use a date encoded in the filename if one exists.
+  return null;
+}
+
+async function getFallbackDate(fallbackName) {
+  // Last resort: a date encoded in the filename, if one exists.
   // Examples: 2026-09-08_photo.jpg or IMG_20260908_143000.jpg
   const match = fallbackName.match(/(20\d{2})[-_]?([01]\d)[-_]?([0-3]\d)/);
   if (match) {
@@ -114,7 +153,6 @@ async function readTakenDate(url, fallbackName) {
     );
     if (!isNaN(d.getTime())) return d;
   }
-
   return null;
 }
 
@@ -288,7 +326,7 @@ function setStatus(message, { live = true } = {}) {
 
 async function buildPhoto(file) {
   const url = rawUrl(file.path);
-  const date = await readTakenDate(url, file.name);
+  const date = (await getUploadDate(file.path)) || (await getFallbackDate(file.name));
 
   return {
     name: file.name,
