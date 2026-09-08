@@ -1,0 +1,282 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0b0c0f;
+  --surface: #121419;
+  --text: #f3f4f6;
+  --muted: #9298a5;
+  --line: #292d35;
+  --accent: #ffffff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.hero {
+  min-height: 38vh;
+  display: grid;
+  place-items: end start;
+  padding: 70px 7vw 55px;
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 75% 20%, rgba(255,255,255,.08), transparent 32%),
+    radial-gradient(circle at 15% 80%, rgba(255,255,255,.045), transparent 30%);
+}
+
+.hero-inner {
+  max-width: 900px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .22em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(52px, 10vw, 120px);
+  line-height: .9;
+  letter-spacing: -.065em;
+}
+
+#status {
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+main {
+  width: min(1200px, 88vw);
+  margin: 0 auto;
+  padding: 80px 0 120px;
+}
+
+.timeline {
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+
+.day {
+  position: relative;
+  margin: 0 0 80px;
+  padding-left: 55px;
+}
+
+.day::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--bg);
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.date {
+  margin: 0 0 24px;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -.02em;
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.photo-card {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: transform .22s ease, border-color .22s ease;
+}
+
+.photo-card:hover {
+  transform: translateY(-3px);
+  border-color: #555b67;
+}
+
+.photo-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform .35s ease;
+}
+
+.photo-card:hover img {
+  transform: scale(1.025);
+}
+
+.photo-info {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 45px 14px 13px;
+  background: linear-gradient(transparent, rgba(0,0,0,.78));
+  pointer-events: none;
+}
+
+.photo-time {
+  font-size: 12px;
+  color: #e7e9ed;
+}
+
+.photo-name {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #aeb3bd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message {
+  text-align: center;
+  padding: 90px 20px;
+  color: var(--muted);
+}
+
+.message h2 {
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.lightbox {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 40px 80px;
+  background: rgba(0,0,0,.94);
+}
+
+.lightbox figure {
+  margin: 0;
+  max-width: min(92vw, 1500px);
+  max-height: 92vh;
+  text-align: center;
+}
+
+.lightbox img {
+  max-width: 100%;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.lightbox figcaption {
+  margin-top: 12px;
+  color: #c5c9d1;
+  font-size: 13px;
+}
+
+.close,
+.nav {
+  position: fixed;
+  z-index: 101;
+  border: 0;
+  background: rgba(255,255,255,.08);
+  color: white;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.close {
+  top: 18px;
+  right: 22px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 70px;
+  border-radius: 12px;
+  font-size: 45px;
+}
+
+.prev { left: 18px; }
+.next { right: 18px; }
+
+@media (max-width: 650px) {
+  .hero {
+    min-height: 32vh;
+    padding: 50px 6vw 40px;
+  }
+
+  main {
+    width: 90vw;
+    padding-top: 55px;
+  }
+
+  .day {
+    padding-left: 40px;
+    margin-bottom: 55px;
+  }
+
+  .timeline::before {
+    left: 11px;
+  }
+
+  .day::before {
+    left: 6px;
+  }
+
+  .photos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .photo-card {
+    border-radius: 9px;
+  }
+
+  .lightbox {
+    padding: 20px;
+  }
+
+  .nav {
+    width: 40px;
+    height: 55px;
+  }
+}
